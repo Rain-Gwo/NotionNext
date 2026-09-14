@@ -71,8 +71,27 @@ const Style = () => {
       #theme-hexo .card,
       #theme-hexo #announcement-wrapper,
       #theme-hexo .article {
-        background-color: var(--hexo-color-card);
+        background-color: color-mix(in srgb, var(--hexo-color-card) 68%, transparent);
+        backdrop-filter: blur(18px) saturate(145%);
+        -webkit-backdrop-filter: blur(18px) saturate(145%);
         border-color: var(--hexo-color-border);
+        box-shadow: 0 8px 32px rgb(15 23 42 / 0.08), inset 0 1px 0 rgb(255 255 255 / 0.3);
+      }
+
+      #theme-hexo .hexo-site-title {
+        color: #fff;
+        text-shadow: 0 0 6px rgb(255 255 255 / 0.9), 0 0 16px var(--theme-color),
+          0 0 32px var(--theme-color);
+        filter: drop-shadow(0 0 8px rgb(255 255 255 / 0.35));
+      }
+
+      .dark #theme-hexo #blog-post-card,
+      .dark #theme-hexo .card,
+      .dark #theme-hexo #announcement-wrapper,
+      .dark #theme-hexo .article {
+        background-color: rgb(15 23 42 / 0.52);
+        border-color: rgb(255 255 255 / 0.16);
+        box-shadow: 0 8px 32px rgb(0 0 0 / 0.28), inset 0 1px 0 rgb(255 255 255 / 0.12);
       }
 
       #theme-hexo #blog-post-card h2 .menu-link {
