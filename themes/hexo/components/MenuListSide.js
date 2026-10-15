@@ -2,6 +2,7 @@ import { siteConfig } from '@/lib/config'
 import { useGlobal } from '@/lib/global'
 import CONFIG from '../config'
 import { MenuItemCollapse } from './MenuItemCollapse'
+import { withPhotographyMenu } from './photographyMenu'
 /**
  * 侧拉抽屉菜单
  * @param {*} props
@@ -52,6 +53,8 @@ export const MenuListSide = props => {
   if (siteConfig('CUSTOM_MENU')) {
     links = customMenu
   }
+
+  links = withPhotographyMenu(links)
 
   if (!links || links.length === 0) {
     return null

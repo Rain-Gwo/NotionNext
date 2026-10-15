@@ -26,10 +26,35 @@ const ClerkProvider = dynamic(() =>
   import('@clerk/nextjs').then(m => m.ClerkProvider)
 )
 const AppErrorBoundary = ErrorHandler.createErrorBoundary(
-  <div style={{ padding: '2rem', textAlign: 'center', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-    <h1 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Something went wrong</h1>
-    <p style={{ color: '#666', marginBottom: '1.5rem' }}>An unexpected error occurred. Please refresh the page.</p>
-    <button onClick={() => window.location.reload()} style={{ padding: '0.5rem 1.5rem', cursor: 'pointer', border: '1px solid #ccc', borderRadius: '4px', background: 'transparent' }}>Refresh</button>
+  <div
+    style={{
+      padding: '2rem',
+      textAlign: 'center',
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}
+  >
+    <h1 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>
+      Something went wrong
+    </h1>
+    <p style={{ color: '#666', marginBottom: '1.5rem' }}>
+      An unexpected error occurred. Please refresh the page.
+    </p>
+    <button
+      onClick={() => window.location.reload()}
+      style={{
+        padding: '0.5rem 1.5rem',
+        cursor: 'pointer',
+        border: '1px solid #ccc',
+        borderRadius: '4px',
+        background: 'transparent'
+      }}
+    >
+      Refresh
+    </button>
   </div>
 )
 
@@ -81,6 +106,12 @@ const MyApp = ({ Component, pageProps }) => {
     },
     [theme]
   )
+
+  // 摄影作品集使用完全独立的沉浸式布局，避免主题容器、插件和
+  // Notion 页面样式影响画廊；其他路由仍走原有 NotionNext 渲染链路。
+  if (route.pathname === '/photography') {
+    return <Component {...pageProps} />
+  }
 
   const enableClerk = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
   const content = (

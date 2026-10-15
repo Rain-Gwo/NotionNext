@@ -1,0 +1,50 @@
+[
+  {
+    "id": "sample-1",
+    "title": "光影山脊",
+    "category": "landscape",
+    "src": "https://images.unsplash.com/photo-1469474968028-56623f8f6d6c?w=800&q=80"
+  },
+  {
+    "id": "sample-2",
+    "title": "城市黄昏",
+    "category": "street",
+    "src": "https://images.unsplash.com/photo-1444723121867-7b2422116bbd?w=800&q=80"
+  },
+  {
+    "id": "sample-3",
+    "title": "猫咪凝视",
+    "category": "casual",
+    "src": "https://images.unsplash.com/photo-1518791841217-8f162f1e1131?w=800&q=80"
+  },
+  {
+    "id": "sample-4",
+    "title": "街角人像",
+    "category": "portrait",
+    "src": "https://images.unsplash.com/photo-1506794778132-b462deda8f3a?w=800&q=80"
+  },
+  {
+    "id": "sample-5",
+    "title": "微笑的午后",
+    "category": "portrait",
+    "src": "https://images.unsplash.com/photo-1438761681033-6461ffad8d35?w=800&q=80"
+  },
+  {
+    "id": "sample-6",
+    "title": "巴黎街头",
+    "category": "street",
+    "src": "https://images.unsplash.com/photo-1502602898-1afab9857465?w=800&q=80"
+  },
+  {
+    "id": "sample-7",
+    "title": "海岛假期",
+    "category": "casual",
+    "src": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80"
+  },
+  {
+    "id": "sample-8",
+    "title": "林间薄雾",
+    "category": "landscape",
+    "src": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=80"
+  }
+]
