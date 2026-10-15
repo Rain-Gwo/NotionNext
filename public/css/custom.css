@@ -7,3 +7,352 @@
     content: "\f05a";
 }
 
+/* ============================================
+   Photography Page Styles — O.G.
+   放入: NotionNext/public/css/custom.css
+   注意: 所有样式都以 #og-photography 前缀限定
+   ============================================ */
+
+/* ====== 页面容器 ====== */
+#og-photography {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #0a0a0a;
+  color: #f5f5f5;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+#og-photography *,
+#og-photography *::before,
+#og-photography *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+#og-photography a { color: inherit; text-decoration: none; }
+#og-photography img { display: block; max-width: 100%; height: auto; }
+
+/* ====== 导航栏 ====== */
+#og-photography .og-navbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 90;
+  background: rgba(10, 10, 10, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background 0.3s;
+}
+
+#og-photography .og-navbar-inner {
+  max-width: 1600px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 48px;
+}
+
+#og-photography .og-brand {
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+#og-photography .og-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  list-style: none;
+}
+
+#og-photography .og-nav-links a {
+  font-size: 14px;
+  font-weight: 400;
+  color: #a0a0a0;
+  transition: color 0.2s;
+}
+#og-photography .og-nav-links a:hover { color: #f5f5f5; }
+
+#og-photography .og-back {
+  font-size: 13px;
+  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s;
+}
+#og-photography .og-back:hover { color: #f5f5f5; }
+
+#og-photography .og-menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: #f5f5f5;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  #og-photography .og-menu-toggle { display: block; }
+  #og-photography .og-nav-links {
+    display: none;
+    position: absolute;
+    top: 100%; left: 0; right: 0;
+    background: #121212;
+    flex-direction: column;
+    padding: 16px 32px;
+    gap: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  #og-photography .og-nav-links.og-open { display: flex; }
+  #og-photography .og-back { display: none; }
+}
+
+/* ====== 英雄区 ====== */
+#og-photography .og-hero {
+  min-height: 40vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  text-align: center;
+  padding: 120px 48px 40px;
+}
+
+#og-photography .og-hero h1 {
+  font-size: clamp(36px, 6vw, 64px);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+}
+
+/* ====== 筛选栏 ====== */
+#og-photography .og-filter-bar {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 48px 40px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+#og-photography .og-filter-btn {
+  padding: 8px 20px;
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 400;
+  color: #a0a0a0;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.25s;
+  letter-spacing: 0.02em;
+}
+
+#og-photography .og-filter-btn:hover {
+  color: #f5f5f5;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+#og-photography .og-filter-btn.og-active {
+  color: #0a0a0a;
+  background: #f5f5f5;
+  border-color: #f5f5f5;
+}
+
+/* ====== 瀑布流 ====== */
+#og-photography .og-gallery {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 48px 80px;
+  column-count: 3;
+  column-gap: 20px;
+}
+
+@media (max-width: 1024px) {
+  #og-photography .og-gallery { column-count: 2; }
+}
+@media (max-width: 640px) {
+  #og-photography .og-gallery { column-count: 1; padding: 0 24px 60px; }
+  #og-photography .og-hero { padding: 100px 24px 40px; }
+  #og-photography .og-filter-bar { padding: 0 24px 32px; }
+  #og-photography .og-navbar-inner { padding: 16px 24px; }
+}
+
+#og-photography .og-gallery-item {
+  break-inside: avoid;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #1a1a1a;
+  cursor: pointer;
+}
+
+#og-photography .og-gallery-item img {
+  width: 100%;
+  height: auto;
+  transition: transform 0.6s ease, filter 0.4s ease;
+  filter: brightness(0.92);
+}
+
+#og-photography .og-gallery-item:hover img {
+  transform: scale(1.03);
+  filter: brightness(1);
+}
+
+#og-photography .og-overlay {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 16px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+#og-photography .og-gallery-item:hover .og-overlay { opacity: 1; }
+
+#og-photography .og-overlay-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+  margin-bottom: 2px;
+}
+
+#og-photography .og-overlay-meta {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* ====== Lightbox ====== */
+#og-photography .og-lightbox {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.95);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+#og-photography .og-lightbox.og-open {
+  display: flex;
+  opacity: 1;
+}
+
+#og-photography .og-lightbox-img {
+  max-width: 90vw;
+  max-height: 85vh;
+  object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+#og-photography .og-lightbox-close {
+  position: absolute;
+  top: 20px; right: 24px;
+  font-size: 28px;
+  color: #fff;
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+  z-index: 10001;
+}
+#og-photography .og-lightbox-close:hover { opacity: 1; }
+
+#og-photography .og-lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 32px;
+  color: #fff;
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+  z-index: 10001;
+  padding: 16px;
+}
+#og-photography .og-lightbox-nav:hover { opacity: 1; }
+#og-photography .og-lightbox-prev { left: 16px; }
+#og-photography .og-lightbox-next { right: 16px; }
+
+#og-photography .og-lightbox-caption {
+  position: absolute;
+  bottom: 24px; left: 0; right: 0;
+  text-align: center;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* ====== 加载提示 ====== */
+#og-photography .og-loading {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 60px 48px;
+  text-align: center;
+  color: #666;
+}
+#og-photography .og-spinner {
+  width: 32px;
+  height: 32px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top-color: rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  margin: 0 auto 16px;
+  animation: og-spin 0.8s linear infinite;
+}
+@keyframes og-spin {
+  to { transform: rotate(360deg); }
+}
+#og-photography .og-loading p {
+  font-size: 13px;
+  color: #555;
+}
+
+/* ====== 空状态 ====== */
+#og-photography .og-empty {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 80px 48px;
+  text-align: center;
+  color: #666;
+  display: none;
+}
+#og-photography .og-empty.og-visible { display: block; }
+#og-photography .og-empty h3 {
+  font-size: 18px;
+  font-weight: 400;
+  margin-bottom: 8px;
+  color: #a0a0a0;
+}
+#og-photography .og-empty p { font-size: 14px; }
+
+/* ====== 页脚 ====== */
+#og-photography .og-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 40px 48px;
+  text-align: center;
+}
+#og-photography .og-footer p {
+  font-size: 13px;
+  color: #666;
+}
+#og-photography .og-footer a {
+  color: #a0a0a0;
+  transition: color 0.2s;
+}
+#og-photography .og-footer a:hover { color: #f5f5f5; }
+
