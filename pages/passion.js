@@ -1,9 +1,20 @@
 import Head from 'next/head'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import styles from './photography.module.css'
 
-const PASSION_COPY = '我还在想，什么值得被留在这里。'
+// Keep the same welcome phrases used by the Hexo home banner, presented here
+// as a quiet typewriter loop for the standalone page.
+const PASSION_GREETINGS = [
+  'Hi，welcome to my blog',
+  'Hi，这是我的个人网站',
+  'Hi，have a good day!',
+  '欢迎来到我的博客🎉'
+]
+
+const TYPE_SPEED = 80
+const DELETE_SPEED = 40
+const PAUSE = 3600
 
 const cn = (...names) =>
   names
@@ -11,14 +22,64 @@ const cn = (...names) =>
     .map(name => styles[name])
     .join(' ')
 
+function TypewriterGreeting() {
+  const [textIndex, setTextIndex] = useState(0)
+  const [displayed, setDisplayed] = useState('')
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [showCursor, setShowCursor] = useState(true)
+
+  useEffect(() => {
+    const cursorInterval = window.setInterval(
+      () => setShowCursor(value => !value),
+      530
+    )
+    return () => window.clearInterval(cursorInterval)
+  }, [])
+
+  useEffect(() => {
+    const current = PASSION_GREETINGS[textIndex]
+    let timeout
+
+    if (!isDeleting && displayed.length < current.length) {
+      timeout = window.setTimeout(
+        () => setDisplayed(current.slice(0, displayed.length + 1)),
+        TYPE_SPEED
+      )
+    } else if (!isDeleting) {
+      timeout = window.setTimeout(() => setIsDeleting(true), PAUSE)
+    } else if (displayed.length > 0) {
+      timeout = window.setTimeout(
+        () => setDisplayed(current.slice(0, displayed.length - 1)),
+        DELETE_SPEED
+      )
+    } else {
+      setIsDeleting(false)
+      setTextIndex(index => (index + 1) % PASSION_GREETINGS.length)
+    }
+
+    return () => window.clearTimeout(timeout)
+  }, [displayed, isDeleting, textIndex])
+
+  return (
+    <p className={cn('og-passion-greeting')} aria-label={displayed}>
+      <span>{displayed}</span>
+      <span
+        className={cn('og-passion-cursor')}
+        aria-hidden='true'
+        style={{ opacity: showCursor ? 1 : 0 }}
+      />
+    </p>
+  )
+}
+
 export default function Passion() {
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
     <div className={styles.page} id='og-passion'>
       <Head>
-        <title>Passion | O.G.</title>
-        <meta name='description' content='O.G. 的 Passion 页面' />
+        <title>思考 | O.G.</title>
+        <meta name='description' content='O.G. 的思考页面' />
         <meta name='theme-color' content='#0a0a0a' />
         <link rel='canonical' href='https://guohaobo.com/passion' />
       </Head>
@@ -34,7 +95,7 @@ export default function Passion() {
           >
             <Link href='/'>首页</Link>
             <Link className={cn('og-nav-current')} href='/passion'>
-              Passion
+              思考
             </Link>
           </nav>
           <button
@@ -51,8 +112,7 @@ export default function Passion() {
       </header>
       <main className={cn('og-passion-main')}>
         <div className={cn('og-passion-content')}>
-          <h1>Passion</h1>
-          <p>{PASSION_COPY}</p>
+          <TypewriterGreeting />
         </div>
       </main>
       <footer className={cn('og-footer')}>

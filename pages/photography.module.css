@@ -426,20 +426,26 @@
   text-align: center;
 }
 
-.page .og-passion-content h1 {
-  margin-bottom: 32px;
-  font-size: clamp(42px, 7vw, 76px);
+.page .og-passion-greeting {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2em;
+  margin: 0;
+  color: #a0a0a0;
+  font-size: clamp(18px, 2.4vw, 24px);
   font-weight: 300;
-  line-height: 1.05;
-  letter-spacing: -0.03em;
+  line-height: 1.6;
+  letter-spacing: 0.03em;
 }
 
-.page .og-passion-content p {
-  color: #a0a0a0;
-  font-size: clamp(16px, 2vw, 20px);
-  font-weight: 300;
-  line-height: 1.9;
-  letter-spacing: 0.03em;
+.page .og-passion-cursor {
+  display: inline-block;
+  width: 1px;
+  height: 1.2em;
+  margin-left: 6px;
+  background: #a0a0a0;
+  transition: opacity 80ms ease;
 }
 
 .page .og-back-to-top {
@@ -617,8 +623,8 @@
     min-height: calc(100dvh - 102px);
     padding: 112px 24px 56px;
   }
-  .page .og-passion-content h1 {
-    margin-bottom: 24px;
+  .page .og-passion-greeting {
+    font-size: clamp(16px, 4.6vw, 20px);
   }
 }
 @media (prefers-reduced-motion: reduce) {

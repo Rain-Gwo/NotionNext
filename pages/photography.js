@@ -229,7 +229,7 @@ export default function Photography() {
             className={cn('og-nav-links', menuOpen && 'og-open')}
           >
             <Link href='/'>首页</Link>
-            <Link href='/passion'>Passion</Link>
+            <Link href='/passion'>思考</Link>
           </nav>
           <button
             type='button'
