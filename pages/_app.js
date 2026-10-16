@@ -107,9 +107,9 @@ const MyApp = ({ Component, pageProps }) => {
     [theme]
   )
 
-  // 摄影作品集使用完全独立的沉浸式布局，避免主题容器、插件和
-  // Notion 页面样式影响画廊；其他路由仍走原有 NotionNext 渲染链路。
-  if (route.pathname === '/photography') {
+  // 摄影作品集和 Passion 页面使用独立的沉浸式布局，避免主题容器、
+  // 插件和 Notion 页面样式影响它们；其他路由仍走原有渲染链路。
+  if (['/photography', '/passion'].includes(route.pathname)) {
     return <Component {...pageProps} />
   }
 

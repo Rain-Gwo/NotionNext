@@ -81,6 +81,10 @@
   color: #f5f5f5;
 }
 
+.page .og-nav-links .og-nav-current {
+  color: #f5f5f5;
+}
+
 .page .og-back {
   font-size: 13px;
   color: #666;
@@ -408,6 +412,36 @@
   color: #f5f5f5;
 }
 
+/* ====== Passion ====== */
+.page .og-passion-main {
+  min-height: calc(100vh - 102px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 132px 48px 72px;
+}
+
+.page .og-passion-content {
+  width: min(720px, 100%);
+  text-align: center;
+}
+
+.page .og-passion-content h1 {
+  margin-bottom: 32px;
+  font-size: clamp(42px, 7vw, 76px);
+  font-weight: 300;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.page .og-passion-content p {
+  color: #a0a0a0;
+  font-size: clamp(16px, 2vw, 20px);
+  font-weight: 300;
+  line-height: 1.9;
+  letter-spacing: 0.03em;
+}
+
 .page .og-back-to-top {
   position: fixed;
   right: 28px;
@@ -578,6 +612,13 @@
     bottom: 18px;
     width: 44px;
     height: 44px;
+  }
+  .page .og-passion-main {
+    min-height: calc(100dvh - 102px);
+    padding: 112px 24px 56px;
+  }
+  .page .og-passion-content h1 {
+    margin-bottom: 24px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
