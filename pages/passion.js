@@ -93,7 +93,7 @@ export default function Passion() {
             id='passion-navigation'
             className={cn('og-nav-links', menuOpen && 'og-open')}
           >
-            <Link href='/'>首页</Link>
+            <Link href='/photography'>返回</Link>
             <Link className={cn('og-nav-current')} href='/passion'>
               思考
             </Link>
