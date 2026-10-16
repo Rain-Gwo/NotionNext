@@ -3,18 +3,18 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import styles from './photography.module.css'
 
-// Keep the same welcome phrases used by the Hexo home banner, presented here
-// as a quiet typewriter loop for the standalone page.
+// Rotate through a small collection of thoughts in a quiet typewriter loop.
 const PASSION_GREETINGS = [
-  'Hi，welcome to my blog',
-  'Hi，这是我的个人网站',
-  'Hi，have a good day!',
-  '欢迎来到我的博客🎉'
+  '希望是蓝色的以太。',
+  '窗外是佛罗伦萨，桌上是死。',
+  '无论走到哪里，都应该记住，过去都是假的，回忆是一条没有归途的路，以往的一切春天都无法复原。',
+  '我时常聆听它，时常注视它的眼睛，我总能跟它学到许多。一条河可以教会人许多东西。',
+  '在一切苦行的尽头，在一切悲伤的尽头，我想象出并预见到另一种快乐，那种纯洁而神秘的天使般的快乐，是我的心灵渴望已久的。'
 ]
 
 const TYPE_SPEED = 80
 const DELETE_SPEED = 40
-const PAUSE = 3600
+const PAUSE = 5000
 
 const cn = (...names) =>
   names
