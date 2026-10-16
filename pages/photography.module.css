@@ -408,6 +408,40 @@
   color: #f5f5f5;
 }
 
+.page .og-back-to-top {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  z-index: 80;
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(18, 18, 18, 0.84);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  font-size: 20px;
+  line-height: 1;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.page .og-back-to-top:hover {
+  color: #fff;
+  background: rgba(34, 34, 34, 0.92);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+}
+
 /* React route integration; source visual system: photogra/custom.css. */
 .page {
   color-scheme: dark;
@@ -538,6 +572,12 @@
   .page .og-fallback {
     min-height: 160px;
     padding: 12px;
+  }
+  .page .og-back-to-top {
+    right: 18px;
+    bottom: 18px;
+    width: 44px;
+    height: 44px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

@@ -148,6 +148,7 @@ export default function Photography() {
   const [category, setCategory] = useState('all')
   const [selection, setSelection] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [showBackToTop, setShowBackToTop] = useState(false)
   const requestRef = useRef(null)
   const alive = useRef(false)
 
@@ -193,6 +194,13 @@ export default function Photography() {
       document.removeEventListener('visibilitychange', refresh)
     }
   }, [loadPhotos])
+
+  useEffect(() => {
+    const updateVisibility = () => setShowBackToTop(window.scrollY > 360)
+    updateVisibility()
+    window.addEventListener('scroll', updateVisibility, { passive: true })
+    return () => window.removeEventListener('scroll', updateVisibility)
+  }, [])
 
   const filtered = photos.filter(
     photo => category === 'all' || photo.category === category
@@ -311,6 +319,16 @@ export default function Photography() {
           O.G. · <Link href='/'>guohaobo.com</Link>
         </p>
       </footer>
+      {showBackToTop && (
+        <button
+          type='button'
+          className={cn('og-back-to-top')}
+          aria-label='回到顶部'
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        >
+          <span aria-hidden='true'>↑</span>
+        </button>
+      )}
       {selection && (
         <Lightbox
           photos={selection.photos}
