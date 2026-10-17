@@ -14,7 +14,8 @@
 // and `/passion`. That means on `/about` NONE of the blog's chrome mounts —
 // the about page is a genuine standalone full page, so there is nothing to
 // leak or cover. We simply read the static HTML at request time and inline
-// its <body> (the about site is styled by /about/styles.css loaded below).
+// its <body>, and inline /about/styles.css into <Head> so the page is
+// styled from the first paint (no FOUC on client-side navigation).
 import fs from 'fs'
 import path from 'path'
 import { useEffect, useLayoutEffect } from 'react'
@@ -39,6 +40,15 @@ function readAboutHtml() {
   }
 }
 
+function readAboutCss() {
+  try {
+    const file = path.join(process.cwd(), 'public/about/styles.css')
+    return fs.readFileSync(file, 'utf8')
+  } catch (e) {
+    return ''
+  }
+}
+
 function pick(html, re) {
   const m = html.match(re)
   return m ? m[1] : ''
@@ -52,10 +62,11 @@ export async function getStaticProps() {
     pick(html, /<meta name="description" content="([^"]*)"/i) ||
     'Oliver Guo 的个人介绍页'
   const body = pick(html, /<body[^>]*>([\s\S]*?)<\/body>/i)
-  return { props: { title, desc, body } }
+  const css = readAboutCss()
+  return { props: { title, desc, body, css } }
 }
 
-export default function About({ title, desc, body }) {
+export default function About({ title, desc, body, css }) {
   // Add the `js` class before first paint so [data-reveal] elements start
   // hidden and fade in via IntersectionObserver (no flash of un-revealed
   // content). Runs on both hard load and client navigation.
@@ -118,7 +129,8 @@ export default function About({ title, desc, body }) {
         <link rel='preconnect' href='https://fonts.googleapis.com' />
         <link rel='preconnect' href='https://fonts.gstatic.com' crossOrigin='anonymous' />
         <link href={FONT_HREF} rel='stylesheet' />
-        <link rel='stylesheet' href='/about/styles.css' />
+        {/* 内联 about 样式：消除客户端跳转时的 FOUC（无样式闪现） */}
+        <style dangerouslySetInnerHTML={{ __html: css }} />
       </Head>
 
       <div
