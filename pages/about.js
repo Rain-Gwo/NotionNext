@@ -72,6 +72,35 @@ export default function About({ title, desc, body }) {
     return () => document.documentElement.classList.remove('js')
   }, [])
 
+  // Intercept clicks on internal (same-origin) links inside the overlay
+  // (Blog -> "/", Photos -> "/photography", ...) and force a real, same-tab
+  // navigation. A plain <a href="/"> here can be swallowed by Next's client
+  // router and stall on a "loading" state; a hard navigation is reliable and
+  // keeps the user in the same tab (no new tab, no stuck spinner).
+  useEffect(() => {
+    const root = document.getElementById('about-root')
+    if (!root) return
+    const onClick = (e) => {
+      const a = e.target.closest('a')
+      if (!a) return
+      const href = a.getAttribute('href') || ''
+      // leave in-page anchors (#...), mailto:, and external/absolute links alone
+      if (
+        !href ||
+        href.startsWith('#') ||
+        href.startsWith('mailto:') ||
+        /^https?:\/\//i.test(href)
+      ) {
+        return
+      }
+      if (href === '/about' || href === '/about/') return
+      e.preventDefault()
+      window.location.href = href
+    }
+    root.addEventListener('click', onClick)
+    return () => root.removeEventListener('click', onClick)
+  }, [])
+
   return (
     <>
       <Head>
