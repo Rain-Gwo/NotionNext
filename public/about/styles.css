@@ -165,6 +165,15 @@ html.js [data-reveal].is-in { opacity: 1; transform: none; }
   height: 100%;
   object-fit: cover;
   display: block;
+  opacity: 1;
+}
+/* 视频加载完成前保持透明，避免空白；JS 启用后淡入显示 */
+html.js .hero-video {
+  opacity: 0;
+  transition: opacity .9s var(--ease);
+}
+html.js .hero-video.is-ready {
+  opacity: 1;
 }
 .hero-overlay {
   position: absolute;

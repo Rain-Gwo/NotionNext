@@ -71,3 +71,17 @@ document.querySelectorAll('a[href^="#"]').forEach((a) => {
     }
   });
 });
+
+// ---------- Hero 视频淡入（canplay 后再显示，避免空白跳变） ----------
+const heroVideo = document.querySelector('.hero-video');
+if (heroVideo) {
+  const revealVideo = () => heroVideo.classList.add('is-ready');
+  if (heroVideo.readyState >= 3) {
+    revealVideo();
+  } else {
+    heroVideo.addEventListener('canplay', revealVideo, { once: true });
+    heroVideo.addEventListener('loadeddata', revealVideo, { once: true });
+    // 兜底：若事件未触发，2.5s 后强制显示
+    setTimeout(revealVideo, 2500);
+  }
+}
