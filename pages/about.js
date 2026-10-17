@@ -1,46 +1,42 @@
-// About Me (Oliver Guo) — standalone static site rendered inside the Next app.
+// About Me (Oliver Guo) — standalone static site rendered as a fullscreen
+// overlay inside the Next app.
 //
 // The real about page is a self-contained static HTML/CSS/JS site kept in
-// `public/about/` (index.html + styles.css + script.js + assets). It cannot be
-// a plain static file at `/about/index.html` because:
-//   - Cloudflare adds a `/zh-CN` locale prefix to every non-localed `.html`
-//     path, and Next i18n then strips it again -> an infinite redirect loop.
-//   - A client-side <Link href="/about"> could not resolve a bare static file.
+// `public/about/` (index.html + styles.css + script.js + assets). It cannot
+// be a plain static file at `/about/index.html` because Cloudflare adds a
+// `/zh-CN` locale prefix to every non-localed `.html` path, and Next i18n
+// then strips it again — an infinite redirect loop (see MEMORY.md).
 //
 // So `/about` is a real Next.js route. This page reads the static HTML at
-// request time, inlines its <body>, and re-adds its <head> links (fonts,
-// styles.css, meta). A scoped `html.about-page` stylesheet hides the blog
-// Header/Footer and lets the about page go full-bleed on its own dark theme.
+// request time and inlines its <body> into a single `position:fixed` overlay
+// that covers the entire viewport at a very high z-index. That overlay sits
+// on top of the blog's #top-nav, Footer, and ExternalPlugins (Live2D widget,
+// chat buttons, right-float) — so none of that chrome can leak through, and
+// we don't need any scoped-CSS class hacks on <html>/<body>.
+//
+// Why a fixed overlay (not the previous "html.about-page" scoped CSS):
+//   Next.js does NOT reliably execute a raw inline <script> in page <Head>
+//   on client-side navigation, so the "about-page" class was never added and
+//   the scoped CSS never applied → the blog Footer + Live2D leaked through.
+//   A fixed overlay needs zero state injection, so it works on hard load AND
+//   client navigation. Scroll happens inside the overlay, so the page's
+//   own `position:fixed` top nav (frosted glass) stays viewport-pinned and
+//   IntersectionObserver (root: viewport) still triggers [data-reveal].
 import fs from 'fs'
 import path from 'path'
-import { useEffect } from 'react'
+import { useEffect, useLayoutEffect } from 'react'
 import Head from 'next/head'
 import Script from 'next/script'
+
+// useLayoutEffect warns on the server; fall back to useEffect there.
+const useIsomorphicLayoutEffect =
+  typeof window !== 'undefined' ? useLayoutEffect : useEffect
 
 const FONT_HREF =
   'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,900;1,400;1,500&family=Inter:wght@300;400;500;600&family=Noto+Serif+SC:wght@400;500;600;700&display=swap'
 
-const SCOPED_CSS = `
-html.about-page { background:#1a1a1a !important; overflow-x:hidden; }
-html.about-page #top-nav,
-html.about-page footer { display:none !important; }
-html.about-page #theme-hexo { background:#1a1a1a !important; }
-html.about-page #wrapper {
-  padding-top:0 !important; padding-left:0 !important; padding-right:0 !important;
-  background:#1a1a1a !important; min-height:100vh !important;
-}
-html.about-page #container-inner {
-  display:block !important; max-width:none !important; margin:0 !important; padding:0 !important;
-}
-html.about-page #container-inner > div {
-  max-width:none !important; width:100% !important; height:auto !important;
-  overflow:visible !important; padding:0 !important;
-}
-html.about-page #about-root {
-  color:#f0ece4; background:#1a1a1a;
-  font-family:'Inter','Noto Serif SC',system-ui,sans-serif;
-}
-`
+const FAVICON_HREF =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231a1a1a'/%3E%3Ctext x='16' y='22' font-size='18' text-anchor='middle' fill='%23f0ece4' font-family='Georgia,serif'%3EO%3C/text%3E%3C/svg%3E"
 
 function readAboutHtml() {
   try {
@@ -68,30 +64,26 @@ export async function getServerSideProps() {
 }
 
 export default function About({ title, desc, body }) {
-  // Remove the full-bleed flag if the user navigates away from this page.
-  useEffect(() => {
-    return () => document.documentElement.classList.remove('about-page')
+  // Add the `js` class before the first paint so [data-reveal] elements start
+  // hidden and fade in via IntersectionObserver (no flash of un-revealed
+  // content). Runs on both hard load and client navigation.
+  useIsomorphicLayoutEffect(() => {
+    document.documentElement.classList.add('js')
+    return () => document.documentElement.classList.remove('js')
   }, [])
 
   return (
     <>
       <Head>
-        {/* Run before paint: mark <html> as js (so [data-reveal] starts hidden
-            and fades in via IntersectionObserver) and as about-page (so the
-            scoped stylesheet hides the blog chrome — no flash of the framed
-            version). */}
+        {/* Defense in depth: also add `js` during HTML parse (hard load only). */}
         <script
           dangerouslySetInnerHTML={{
-            __html:
-              "document.documentElement.classList.add('js');document.documentElement.classList.add('about-page')",
+            __html: "document.documentElement.classList.add('js')",
           }}
         />
         <title>{title}</title>
         <meta name='description' content={desc} />
-        <link
-          rel='icon'
-          href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231a1a1a'/%3E%3Ctext x='16' y='22' font-size='18' text-anchor='middle' fill='%23f0ece4' font-family='Georgia,serif'%3EO%3C/text%3E%3C/svg%3E"
-        />
+        <link rel='icon' href={FAVICON_HREF} />
         <link rel='canonical' href='https://www.guohaobo.com/about/' />
         <meta property='og:type' content='website' />
         <meta property='og:title' content={title} />
@@ -106,10 +98,24 @@ export default function About({ title, desc, body }) {
         <link rel='preconnect' href='https://fonts.gstatic.com' crossOrigin='anonymous' />
         <link href={FONT_HREF} rel='stylesheet' />
         <link rel='stylesheet' href='/about/styles.css' />
-        <style dangerouslySetInnerHTML={{ __html: SCOPED_CSS }} />
       </Head>
 
-      <div id='about-root' dangerouslySetInnerHTML={{ __html: body }} />
+      <div
+        id='about-root'
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 2147483000,
+          overflowY: 'auto',
+          background: '#1a1a1a',
+          color: '#f0ece4',
+          fontFamily: "'Inter','Noto Serif SC',system-ui,sans-serif",
+        }}
+        dangerouslySetInnerHTML={{ __html: body }}
+      />
 
       <Script src='/about/script.js' strategy='afterInteractive' />
     </>
