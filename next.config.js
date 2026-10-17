@@ -302,6 +302,15 @@ const nextConfig = {
 
       return [
         ...langsRewrites,
+        // Serve the standalone About page without booting the Notion route.
+        {
+          source: '/about',
+          destination: '/about/index.html'
+        },
+        {
+          source: '/about/',
+          destination: '/about/index.html'
+        },
         // RSS fallback: when static file doesn't exist, route to API
         {
           source: '/rss/feed.xml',
@@ -326,6 +335,24 @@ const nextConfig = {
     ? undefined
     : () => {
       return [
+        {
+          source: '/about/index.html',
+          headers: [
+            {
+              key: 'Cache-Control',
+              value: 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400'
+            }
+          ]
+        },
+        {
+          source: '/about/:path*',
+          headers: [
+            {
+              key: 'Cache-Control',
+              value: 'public, max-age=31536000, immutable'
+            }
+          ]
+        },
         {
           source: '/vendor/fontawesome/:path*',
           headers: [
