@@ -48,6 +48,10 @@ const SmartLink = ({ href, children, ...rest }) => {
   }
 
   const isExternal = urlString.startsWith('http') && !urlString.startsWith(LINK)
+  // The standalone About page is served from /public and is not a Next page.
+  // Use a native navigation so client-side routing does not render the blog 404.
+  const isStandaloneAbout =
+    typeof href === 'string' && /^\/about\/?$/.test(href)
 
   const getPersistedQuery = () => {
     if (typeof window === 'undefined') return {}
@@ -101,6 +105,14 @@ const SmartLink = ({ href, children, ...rest }) => {
         target='_blank'
         rel='noopener noreferrer'
         {...filterDOMProps(rest)}>
+        {children}
+      </a>
+    )
+  }
+
+  if (isStandaloneAbout) {
+    return (
+      <a href='/about' {...filterDOMProps(rest)}>
         {children}
       </a>
     )
