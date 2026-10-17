@@ -301,6 +301,9 @@ const nextConfig = {
       }
 
       return [
+        // 独立关于页（静态 HTML，不走 Notion 路由）
+        { source: '/about', destination: '/about/index.html' },
+        { source: '/about/', destination: '/about/index.html' },
         ...langsRewrites,
         // RSS fallback: when static file doesn't exist, route to API
         {
