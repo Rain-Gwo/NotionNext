@@ -1,5 +1,4 @@
-// About Me (Oliver Guo) — standalone static site rendered as a fullscreen
-// overlay inside the Next app.
+// About Me (Oliver Guo) — standalone full page inside the Next app.
 //
 // The real about page is a self-contained static HTML/CSS/JS site kept in
 // `public/about/` (index.html + styles.css + script.js + assets). It cannot
@@ -7,28 +6,19 @@
 // `/zh-CN` locale prefix to every non-localed `.html` path, and Next i18n
 // then strips it again — an infinite redirect loop (see MEMORY.md).
 //
-// So `/about` is a real Next.js route. This page reads the static HTML at
-// request time and inlines its <body> into a single `position:fixed` overlay
-// that covers the entire viewport at a very high z-index. That overlay sits
-// on top of the blog's #top-nav, Footer, and ExternalPlugins (Live2D widget,
-// chat buttons, right-float) — so none of that chrome can leak through, and
-// we don't need any scoped-CSS class hacks on <html>/<body>.
-//
-// Why a fixed overlay (not the previous "html.about-page" scoped CSS):
-//   Next.js does NOT reliably execute a raw inline <script> in page <Head>
-//   on client-side navigation, so the "about-page" class was never added and
-//   the scoped CSS never applied → the blog Footer + Live2D leaked through.
-//   A fixed overlay needs zero state injection, so it works on hard load AND
-//   client navigation. Scroll happens inside the overlay, so the page's
-//   own `position:fixed` top nav (frosted glass) stays viewport-pinned and
-//   IntersectionObserver (root: viewport) still triggers [data-reveal].
+// So `/about` is a real Next.js route. In `pages/_app.js` the theme Layout
+// (which renders #top-nav, Footer and ExternalPlugins like the Live2D widget
+// and chat buttons) is *skipped* for `/about`, exactly like `/photography`
+// and `/passion`. That means on `/about` NONE of the blog's chrome mounts —
+// the about page is a genuine standalone full page, so there is nothing to
+// leak or cover. We simply read the static HTML at request time and inline
+// its <body> (the about site is styled by /about/styles.css loaded below).
 import fs from 'fs'
 import path from 'path'
 import { useEffect, useLayoutEffect } from 'react'
 import Head from 'next/head'
 import Script from 'next/script'
 
-// useLayoutEffect warns on the server; fall back to useEffect there.
 const useIsomorphicLayoutEffect =
   typeof window !== 'undefined' ? useLayoutEffect : useEffect
 
@@ -64,7 +54,7 @@ export async function getServerSideProps() {
 }
 
 export default function About({ title, desc, body }) {
-  // Add the `js` class before the first paint so [data-reveal] elements start
+  // Add the `js` class before first paint so [data-reveal] elements start
   // hidden and fade in via IntersectionObserver (no flash of un-revealed
   // content). Runs on both hard load and client navigation.
   useIsomorphicLayoutEffect(() => {
@@ -72,11 +62,11 @@ export default function About({ title, desc, body }) {
     return () => document.documentElement.classList.remove('js')
   }, [])
 
-  // Intercept clicks on internal (same-origin) links inside the overlay
+  // Intercept clicks on internal (same-origin) links inside the about page
   // (Blog -> "/", Photos -> "/photography", ...) and force a real, same-tab
-  // navigation. A plain <a href="/"> here can be swallowed by Next's client
-  // router and stall on a "loading" state; a hard navigation is reliable and
-  // keeps the user in the same tab (no new tab, no stuck spinner).
+  // navigation. A plain <a href="/"> injected via dangerouslySetInnerHTML can
+  // be swallowed by the blog's client router and stall on a "loading" state;
+  // a hard navigation is reliable and stays in the same tab.
   useEffect(() => {
     const root = document.getElementById('about-root')
     if (!root) return
@@ -132,16 +122,9 @@ export default function About({ title, desc, body }) {
       <div
         id='about-root'
         style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: 2147483000,
-          overflowY: 'auto',
+          minHeight: '100vh',
           background: '#1a1a1a',
           color: '#f0ece4',
-          fontFamily: "'Inter','Noto Serif SC',system-ui,sans-serif",
         }}
         dangerouslySetInnerHTML={{ __html: body }}
       />
