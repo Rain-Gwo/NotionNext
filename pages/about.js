@@ -6,7 +6,9 @@
 // `/zh-CN` locale prefix to every non-localed `.html` path, and Next i18n
 // then strips it again — an infinite redirect loop (see MEMORY.md).
 //
-// So `/about` is a real Next.js route. In `pages/_app.js` the theme Layout
+// So `/about` is a real Next.js route. It uses `getStaticProps` (the about
+// content is a fixed static file, generated at build time) so Next.js prefetches
+// it on the homepage and the About click navigates instantly. In `pages/_app.js` the theme Layout
 // (which renders #top-nav, Footer and ExternalPlugins like the Live2D widget
 // and chat buttons) is *skipped* for `/about`, exactly like `/photography`
 // and `/passion`. That means on `/about` NONE of the blog's chrome mounts —
@@ -42,7 +44,7 @@ function pick(html, re) {
   return m ? m[1] : ''
 }
 
-export async function getServerSideProps() {
+export async function getStaticProps() {
   const html = readAboutHtml()
   const title =
     pick(html, /<title[^>]*>([\s\S]*?)<\/title>/i) || '关于 — Oliver Guo'
