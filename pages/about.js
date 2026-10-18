@@ -123,7 +123,7 @@ export default function About({ title, desc, body, css }) {
         <meta property='og:url' content='https://www.guohaobo.com/about/' />
         <meta
           property='og:image'
-          content='https://www.guohaobo.com/about/assets/desktop.jpg'
+          content='https://www.guohaobo.com/about/assets/desktop-v2.jpg'
         />
         <meta name='twitter:card' content='summary_large_image' />
         <link rel='preconnect' href='https://fonts.googleapis.com' />
