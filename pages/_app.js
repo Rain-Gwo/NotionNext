@@ -98,6 +98,37 @@ const MyApp = ({ Component, pageProps }) => {
     )
   }, [configTheme, notionTheme, queryTheme, theme])
 
+  // 进入深色沉浸页（/music、/about、/photography、/passion）时，在点击链接的
+  // 那一刻先把 <html> 背景刷黑。这些页面是深色、博客是浅色，客户端切换时
+  // <html> 会有一帧透明（露出浏览器白底）——提前刷黑即可彻底消除这一帧白闪。
+  useEffect(() => {
+    const DARK_ROUTES = ['/music', '/about', '/photography', '/passion']
+    const isDarkPath = p =>
+      DARK_ROUTES.includes((p || '').replace(/\/$/, '') || '/')
+
+    const onDocClick = e => {
+      const el = e.target
+      const a = el && el.closest ? el.closest('a[href]') : null
+      if (!a) return
+      try {
+        const url = new URL(a.getAttribute('href'), window.location.origin)
+        if (url.origin === window.location.origin && isDarkPath(url.pathname)) {
+          document.documentElement.style.backgroundColor = '#000'
+        }
+      } catch (_) {
+        /* ignore malformed href */
+      }
+    }
+    document.addEventListener('click', onDocClick, true)
+
+    // 离开深色页（回到浅色博客等）时清掉内联底色，避免移动端回弹露黑边。
+    if (!isDarkPath(route.pathname)) {
+      document.documentElement.style.backgroundColor = ''
+    }
+
+    return () => document.removeEventListener('click', onDocClick, true)
+  }, [route.pathname])
+
   // 整体布局
   const GLayout = useCallback(
     props => {
