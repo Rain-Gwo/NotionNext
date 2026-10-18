@@ -72,11 +72,11 @@ document.querySelectorAll('a[href^="#"]').forEach((a) => {
   });
 });
 
-// ---------- Hero 视频：动态注入的 <video autoplay> 不会自动播放，必须显式 play() ----------
+// ---------- Hero 视频：元素始终可见（opacity:1），仅显式触发播放 ----------
+// 动态注入的 <video autoplay> 不会自动开播，必须显式 play()；poster 提供即时
+// 静态首帧，播放后自然覆盖，不需要任何透明度门 / 淡入。
 const heroVideo = document.querySelector('.hero-video');
 if (heroVideo) {
-  // 即时显示（poster 提供静态首帧），随后淡入；视频开始播放后自然覆盖 poster
-  heroVideo.classList.add('is-ready');
   const startPlay = () => {
     const pr = heroVideo.play();
     if (pr && typeof pr.then === 'function') {
