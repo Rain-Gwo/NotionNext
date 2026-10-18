@@ -22,17 +22,18 @@ body.light-theme {
     min-height: 100vh;
     background-color: #000000;
     color: #f5f5f7;
-    /* Slight fade-in from black on mount. Combined with the pre-painted black
-       <html> background (pages/_app.js), this makes the light→dark route
-       transition smooth instead of a hard cut. */
-    animation: musicFadeIn 0.12s ease-out both;
+    /* Start invisible so the very first painted frame is black (the <html>
+       background is pre-painted black on navigation). Then fade in from black
+       — no white frame, no 1-frame content blip, smooth light→dark transition. */
+    opacity: 0;
+    animation: musicFadeIn 0.12s ease-out forwards;
 }
 @keyframes musicFadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
-    .music-page { animation: none; }
+    .music-page { opacity: 1; animation: none; }
 }
 body.light-theme .music-page {
     background-color: #f5f5f7;
