@@ -273,9 +273,17 @@ function toggleTheme() {
     }
 }
 
-window.addEventListener('DOMContentLoaded', () => {
+function initMusicPage() {
     albumsData = (window.__ALBUMS__ && window.__ALBUMS__.length)
         ? window.__ALBUMS__
         : generateExpandedDatabase();
     renderGrids();
-});
+}
+
+// next/script afterInteractive runs AFTER DOMContentLoaded has already fired,
+// so a plain DOMContentLoaded listener would never trigger. Handle both cases.
+if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', initMusicPage);
+} else {
+    initMusicPage();
+}
