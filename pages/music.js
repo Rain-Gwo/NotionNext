@@ -144,6 +144,26 @@ async function fetchJSON(url, headers = {}) {
   }
 }
 
+// Run async tasks with bounded concurrency, preserving input order.
+// Used for album enrichment and per-track Netease lookups: sequential awaits
+// made the build scale linearly (63 albums ≈ 16 min) and it eventually failed.
+async function mapLimit(items, limit, fn) {
+  const list = items || []
+  const out = new Array(list.length)
+  let cursor = 0
+  const workers = Array.from(
+    { length: Math.max(1, Math.min(limit, list.length)) },
+    async () => {
+      while (cursor < list.length) {
+        const i = cursor++
+        out[i] = await fn(list[i], i)
+      }
+    }
+  )
+  await Promise.all(workers)
+  return out
+}
+
 async function musicbrainzEnrich(title, artist) {
   const q = encodeURIComponent(`release:"${title}" AND artist:"${artist}"`)
   const s = await fetchJSON(
@@ -338,13 +358,14 @@ async function enrich(a, index) {
       ]
 
   // Attach Netease direct links only for real tracks (skip placeholder).
+  // Bounded concurrency: an album has ~10 tracks, and running them one by one
+  // across 60+ albums serialised hundreds of requests (≈16 min build).
   if (hasRealTracks) {
-    for (const t of tracks) {
-      if (!t.links.netease) {
-        const nid = await neteaseSongId(t.title, t.artist)
-        if (nid) t.links.netease = `https://music.163.com/song/${nid}`
-      }
-    }
+    await mapLimit(tracks, 3, async (t) => {
+      if (t.links.netease) return
+      const nid = await neteaseSongId(t.title, t.artist)
+      if (nid) t.links.netease = `https://music.163.com/song/${nid}`
+    })
   }
 
   return {
@@ -430,15 +451,19 @@ async function buildAlbums() {
 
   if (!raw || raw.length === 0) return []
 
-  const out = []
-  for (let i = 0; i < raw.length; i++) {
+  // Bounded concurrency instead of a serial for-await: a 60+ album library took
+  // ~16 minutes when every album waited for the previous one, and the Vercel
+  // build failed at the end of it. A pool of 4 keeps the whole enrichment under
+  // a minute while staying polite to QQ / MusicBrainz / Netease.
+  const out = await mapLimit(raw, 4, async (item, i) => {
     try {
-      out.push(await enrich(raw[i], i))
+      return await enrich(item, i)
     } catch (e) {
-      console.error('[music] enrich failed for', raw[i], e)
+      console.error('[music] enrich failed for', item, e)
+      return null
     }
-  }
-  return out
+  })
+  return out.filter(Boolean)
 }
 
 export async function getStaticProps() {
