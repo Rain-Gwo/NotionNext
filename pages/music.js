@@ -72,10 +72,32 @@ function firstProp(props, candidates, kind) {
 }
 
 // ---------- Notion ----------
+// This fork has no plain `NOTION_TOKEN`: the blog itself authenticates with
+// NOTION_TOKEN_V2, and the photography gallery with PHOTOGRAPHY_NOTION_TOKEN.
+// Accept any of them (plus a dedicated MUSIC_NOTION_TOKEN) so wiring the music
+// library never depends on guessing one exact variable name. A token that lacks
+// access to the library simply 404s and we fall back to albums.json.
+function notionToken() {
+  return (
+    process.env.MUSIC_NOTION_TOKEN ||
+    process.env.NOTION_TOKEN ||
+    process.env.NOTION_TOKEN_V2 ||
+    process.env.PHOTOGRAPHY_NOTION_TOKEN ||
+    ''
+  )
+}
+
 async function getNotionAlbums() {
-  const token = process.env.NOTION_TOKEN
+  const token = notionToken()
   const dbId = process.env.MUSIC_NOTION_DATABASE_ID
-  if (!token || !dbId) return null
+  if (!token || !dbId) {
+    console.warn(
+      `[music] Notion skipped (token: ${token ? 'ok' : 'MISSING'}, dbId: ${
+        dbId || 'MISSING'
+      }) — using albums.json`
+    )
+    return null
+  }
 
   const res = await fetch(`https://api.notion.com/v1/databases/${dbId}/query`, {
     method: 'POST',
