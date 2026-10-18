@@ -209,8 +209,8 @@ async function qqAlbumDetail(albummid) {
   }))
   if (!tracks.length) return null
   return {
-    // Tencent CDN — fast in China, no cross-border hop.
-    cover: `https://y.gtimg.cn/music/photo_new/T002R500x500M000${albummid}.jpg`,
+    // 300px + browser's Accept:image/webp -> ~17KB WebP from Tencent CDN.
+    cover: `https://y.gtimg.cn/music/photo_new/T002R300x300M000${albummid}.jpg`,
     tracks,
     year: (data.aDate || '').slice(0, 4)
   }
@@ -220,6 +220,28 @@ async function qqEnrich(title, artist) {
   const search = await qqSearchAlbum(title, artist)
   if (!search || !search.albummid) return null
   return qqAlbumDetail(search.albummid)
+}
+
+// Prefer self-hosted, WebP-compressed covers generated at build time
+// (scripts/gen-music-covers.mjs -> public/music/covers_manifest.json). Falls
+// back to the remote Tencent-CDN URL only when a cover wasn't pre-generated.
+const COVER_MANIFEST_PATH = path.join(
+  process.cwd(),
+  'public/music/covers_manifest.json'
+)
+let _coverManifest = null
+function coverManifest() {
+  if (_coverManifest === null) {
+    try {
+      _coverManifest = JSON.parse(fs.readFileSync(COVER_MANIFEST_PATH, 'utf8'))
+    } catch (e) {
+      _coverManifest = {}
+    }
+  }
+  return _coverManifest
+}
+function localCover(title, artist) {
+  return coverManifest()[`${title}__${artist}`] || null
 }
 
 async function enrich(a, index) {
@@ -234,6 +256,10 @@ async function enrich(a, index) {
     info = await itunesEnrich(a.title, a.artist)
   }
   if (!info) info = { cover: '', tracks: [], year: '' }
+
+  // Use the self-hosted WebP cover when available (faster, no cross-origin).
+  const local = localCover(a.title, a.artist)
+  if (local) info.cover = local
 
   const tracks =
     info.tracks && info.tracks.length
