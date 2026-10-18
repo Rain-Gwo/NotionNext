@@ -3,9 +3,11 @@
 // The page markup lives in `public/music/index.html` (HTML + Tailwind classes).
 // Album data is NOT hardcoded: `getStaticProps` reads a Notion "音乐" database
 // (you only maintain 专辑名 + 歌手 + 分类), then enriches each row with cover
-// art + full tracklist via MusicBrainz (+ Cover Art Archive), falling back to
-// the iTunes Search API. The enriched JSON is injected as `window.__ALBUMS__`
-// and consumed by `public/music/script.js`.
+// art + full tracklist. Primary source is **QQ Music** (domestic, unencrypted,
+// covers served from Tencent CDN — fast in China, accurate for CN/EN catalogs),
+// with MusicBrainz (+ Cover Art Archive) and the iTunes Search API as fallbacks.
+// The enriched JSON is injected as `window.__ALBUMS__` and consumed by
+// `public/music/script.js`.
 //
 // Revalidated hourly (ISR): add an album in Notion and it shows up within the
 // revalidation window (or trigger an on-demand revalidation).
@@ -21,6 +23,9 @@ const FAVICON_HREF =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23000'/%3E%3Ctext x='16' y='22' font-size='16' text-anchor='middle' fill='%23ff2d55' font-family='Georgia,serif'%3E♪%3C/text%3E%3C/svg%3E"
 
 const UA = 'guohaobo-music/1.0 (https://guohaobo.com; contact@guohaobo.com)'
+// QQ Music's endpoints expect a browser-like UA / Referer.
+const QQ_UA =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 const FALLBACK_COVER =
   'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&auto=format&fit=crop&q=80'
 
@@ -173,8 +178,58 @@ async function itunesEnrich(title, artist) {
   }
 }
 
+// ---------- Enrichment: QQ Music (primary, domestic) ----------
+async function qqSearchAlbum(title, artist) {
+  const term = encodeURIComponent(`${title} ${artist}`)
+  const d = await fetchJSON(
+    `https://c.y.qq.com/soso/fcgi-bin/client_search_cp?aggr=1&cr=1&lossless=0&flag_qc=0&p=1&n=5&w=${term}&format=json`,
+    { 'User-Agent': QQ_UA, Referer: 'https://y.qq.com/' }
+  )
+  const albums = d?.data?.album?.list || []
+  const songs = d?.data?.song?.list || []
+  const pick = albums[0] || songs[0]
+  if (!pick || !pick.albummid) return null
+  return { albummid: pick.albummid, name: pick.albumname }
+}
+
+async function qqAlbumDetail(albummid) {
+  const d = await fetchJSON(
+    `https://c.y.qq.com/v8/fcg-bin/fcg_v8_album_info_cp.fcg?type=1&json=1&albummid=${albummid}&format=json&inCharset=utf8&outCharset=utf-8&platform=yqq.json&needNewCode=0&hostUin=0&notice=0`,
+    { 'User-Agent': QQ_UA, Referer: 'https://y.qq.com/' }
+  )
+  const data = d?.data
+  if (!data) return null
+  const list = data.list || []
+  const tracks = list.map((s, i) => ({
+    id: `${albummid}-t${i + 1}`,
+    title: s.songname || '',
+    artist: (s.singer || []).map(x => x.name).join('/') || '',
+    duration: fmtDuration((s.interval || 0) * 1000),
+    explicit: false
+  }))
+  if (!tracks.length) return null
+  return {
+    // Tencent CDN — fast in China, no cross-border hop.
+    cover: `https://y.gtimg.cn/music/photo_new/T002R500x500M000${albummid}.jpg`,
+    tracks,
+    year: (data.aDate || '').slice(0, 4)
+  }
+}
+
+async function qqEnrich(title, artist) {
+  const search = await qqSearchAlbum(title, artist)
+  if (!search || !search.albummid) return null
+  return qqAlbumDetail(search.albummid)
+}
+
 async function enrich(a, index) {
-  let info = await musicbrainzEnrich(a.title, a.artist)
+  // Primary: QQ Music (domestic, unencrypted, Tencent-CDN covers).
+  let info = await qqEnrich(a.title, a.artist)
+  // Fallback 1: MusicBrainz + Cover Art Archive.
+  if (!info || !info.tracks || info.tracks.length === 0) {
+    info = await musicbrainzEnrich(a.title, a.artist)
+  }
+  // Fallback 2: iTunes Search API.
   if (!info || !info.tracks || info.tracks.length === 0) {
     info = await itunesEnrich(a.title, a.artist)
   }
