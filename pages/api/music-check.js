@@ -24,6 +24,11 @@ export default async function handler(req, res) {
     tokenPrefix: token ? token.slice(0, 4) + '…' : '',
     dbId: dbId || 'MISSING',
     notionVersion: '2022-06-28',
+    // 只列变量名 + 值长度，不泄露内容：能一眼看出拼写错误、多空格、空值
+    envKeys: Object.keys(process.env)
+      .filter((k) => /MUSIC|NOTION/i.test(k))
+      .sort()
+      .map((k) => `${k} (len=${(process.env[k] || '').length})`),
   }
 
   if (!token || !dbId) {
