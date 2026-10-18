@@ -319,9 +319,42 @@ function localCover(title, artist) {
   return coverManifest()[`${title}__${artist}`] || null
 }
 
+// ---------- Pre-computed album metadata ----------
+// `public/music/enrich-cache.json` is generated offline (at authoring time) by
+// `node scripts/music-cache.mjs`, and committed. It holds cover / tracklist /
+// direct links for every album, so `getStaticProps` performs ZERO upstream
+// requests: the 60-album library used to take ~16 minutes to enrich on every
+// deploy and the Vercel build failed at the end of it.
+// Cache key is `title\u0000artist` — the same pair used for Notion rows.
+const ENRICH_CACHE_PATH = path.join(
+  process.cwd(),
+  'public/music/enrich-cache.json'
+)
+let _enrichCache = null
+function enrichCache() {
+  if (_enrichCache === null) {
+    try {
+      _enrichCache = JSON.parse(fs.readFileSync(ENRICH_CACHE_PATH, 'utf8'))
+    } catch (e) {
+      _enrichCache = {}
+    }
+  }
+  return _enrichCache
+}
+function cachedInfo(title, artist) {
+  const hit = enrichCache()[`${title}\u0000${artist}`]
+  return hit && hit.tracks && hit.tracks.length ? hit : null
+}
+
 async function enrich(a, index) {
+  // Cache first: `public/music/enrich-cache.json` is generated offline by
+  // `node scripts/music-cache.mjs`, so a deploy reads a static file instead of
+  // hammering QQ Music / Netease for every album. Only rows that are NOT in the
+  // cache (a newly added Notion album) go to the network.
+  const cached = cachedInfo(a.title, a.artist)
+
   // Primary: QQ Music (domestic, unencrypted, Tencent-CDN covers).
-  let info = await qqEnrich(a.title, a.artist)
+  let info = cached || (await qqEnrich(a.title, a.artist))
   // Fallback 1: MusicBrainz + Cover Art Archive.
   if (!info || !info.tracks || info.tracks.length === 0) {
     info = await musicbrainzEnrich(a.title, a.artist)
@@ -358,9 +391,8 @@ async function enrich(a, index) {
       ]
 
   // Attach Netease direct links only for real tracks (skip placeholder).
-  // Bounded concurrency: an album has ~10 tracks, and running them one by one
-  // across 60+ albums serialised hundreds of requests (≈16 min build).
-  if (hasRealTracks) {
+  // Skipped entirely on a cache hit — the cached tracks already carry them.
+  if (hasRealTracks && !cached) {
     await mapLimit(tracks, 3, async (t) => {
       if (t.links.netease) return
       const nid = await neteaseSongId(t.title, t.artist)
