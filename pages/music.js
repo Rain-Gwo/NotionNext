@@ -414,6 +414,10 @@ export async function getStaticProps() {
     '我喜欢的专辑与歌曲'
   const body = pick(html, /<body[^>]*>([\s\S]*?)<\/body>/i)
   const css = readSafe(path.join(process.cwd(), 'public/music/styles.css'))
+  // Precompiled Tailwind (tailwind.music.config.js -> public/music/tw.css),
+  // inlined into <head> so the very first paint is fully styled. This removes
+  // the Play-CDN runtime JIT entirely — no FOUC / flash on any device.
+  const twCss = readSafe(path.join(process.cwd(), 'public/music/tw.css'))
 
   let albums = []
   try {
@@ -442,12 +446,12 @@ export async function getStaticProps() {
   const albumsJson = JSON.stringify(albums || []).replace(/</g, '\\u003c')
 
   return {
-    props: { title, desc, body: filledBody, css, albumsJson },
+    props: { title, desc, body: filledBody, css, twCss, albumsJson },
     revalidate: 3600
   }
 }
 
-export default function Music({ title, desc, body, css, albumsJson }) {
+export default function Music({ title, desc, body, css, twCss, albumsJson }) {
   return (
     <>
       <Head>
@@ -460,8 +464,7 @@ export default function Music({ title, desc, body, css, albumsJson }) {
         <meta property='og:description' content={desc} />
         <meta property='og:url' content='https://www.guohaobo.com/music/' />
         <meta name='twitter:card' content='summary_large_image' />
-        {/* Critical paint: keep the page dark even before Tailwind CDN compiles,
-            so client navigation to /music never flashes white. */}
+        {/* Critical paint: keep the page dark on the very first frame. */}
         <style
           dangerouslySetInnerHTML={{
             __html: 'html,body{background:#000000;color:#f5f5f7}'
@@ -473,14 +476,15 @@ export default function Music({ title, desc, body, css, albumsJson }) {
           href='https://fonts.gstatic.com'
           crossOrigin='anonymous'
         />
-        <link rel='preconnect' href='https://cdn.tailwindcss.com' />
         <link href={FONT_HREF} rel='stylesheet' />
-        <script src='https://cdn.tailwindcss.com' />
         <link
           rel='stylesheet'
           href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css'
         />
-        {/* 内联样式：消除客户端跳转时的 FOUC */}
+        {/* Tailwind utilities, precompiled at build time and inlined — replaces
+            the runtime Play CDN, so there is no unstyled first paint. */}
+        <style dangerouslySetInnerHTML={{ __html: twCss }} />
+        {/* Custom page styles (inlined) */}
         <style dangerouslySetInnerHTML={{ __html: css }} />
         {/* 注入构建期补全好的专辑数据 */}
         <script
@@ -494,7 +498,7 @@ export default function Music({ title, desc, body, css, albumsJson }) {
         dangerouslySetInnerHTML={{ __html: body }}
       />
 
-      <Script src='/music/script.js' strategy='afterInteractive' />
+      <Script src='/music/script.js?v=3' strategy='afterInteractive' />
     </>
   )
 }
