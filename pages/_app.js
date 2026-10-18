@@ -110,7 +110,7 @@ const MyApp = ({ Component, pageProps }) => {
   // /about 以及摄影作品集、Passion 页面使用独立的整页渲染，不套用主题
   // Layout（#top-nav / Footer / ExternalPlugins 等主站 chrome 完全不挂载），
   // 避免主站导航、Live2D、聊天按钮等穿帮；其他路由仍走原有渲染链路。
-  if (['/photography', '/passion', '/about'].includes(route.pathname)) {
+  if (['/photography', '/passion', '/about', '/music'].includes(route.pathname)) {
     return <Component {...pageProps} />
   }
 

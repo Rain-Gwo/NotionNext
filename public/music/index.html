@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>guohaobo.com - Music</title>
+    <meta name="description" content="Oliver Guo 的音乐库 — 我喜欢的专辑与歌曲">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-rose-500 selection:text-white">
+
+    <nav class="glass-nav fixed top-0 left-0 right-0 z-40 h-14 md:h-16 px-3 sm:px-6 flex items-center justify-between">
+        <div class="flex items-center space-x-3 sm:space-x-8">
+            <a href="#" class="flex items-center space-x-2 text-lg sm:text-2xl font-black tracking-tighter hover:opacity-80 transition">
+                <span class="bg-gradient-to-r from-rose-500 via-pink-500 to-rose-400 bg-clip-text text-transparent font-extrabold tracking-tight">O.G.</span>
+            </a>
+
+            <div class="flex items-center space-x-3 sm:space-x-6 text-xs sm:text-sm font-medium">
+                <a href="https://www.guohaobo.com" target="_blank" class="theme-text-secondary hover:text-rose-500 transition font-semibold">BLOG</a>
+                <a href="#" onclick="showGridView()" class="theme-text-primary border-b-2 border-rose-500 pb-0.5 sm:pb-1 font-bold">Music</a>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-2 sm:space-x-4">
+            <div class="relative flex items-center">
+                <i class="fa-solid fa-magnifying-glass absolute left-2.5 sm:left-3 text-xs theme-text-secondary pointer-events-none"></i>
+                <input type="text"
+                       id="searchInput"
+                       oninput="handleSearch(this.value)"
+                       placeholder="搜索专辑/歌手..."
+                       class="pl-7 sm:pl-8 pr-6 sm:pr-7 py-1 sm:py-1.5 w-24 sm:w-48 md:w-56 text-xs rounded-full theme-input-bg theme-text-primary focus:outline-none focus:w-36 sm:focus:w-56 focus:ring-2 focus:ring-rose-500/50 transition-all border border-transparent">
+                <button id="searchClearBtn" onclick="clearSearch()" class="hidden absolute right-2 text-xs text-zinc-400 hover:text-white">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <button onclick="toggleTheme()" id="themeToggleBtn" class="p-1.5 sm:p-2 rounded-full hover:bg-zinc-800/50 theme-text-secondary hover:text-rose-500 transition flex items-center justify-center" title="切换模式">
+                <i class="fa-solid fa-moon text-xs sm:text-base" id="themeIcon"></i>
+            </button>
+
+            <div class="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-gradient-to-tr from-rose-500 to-pink-500 p-[1.5px] cursor-pointer shadow-sm hover:scale-105 transition flex-shrink-0">
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
+                     id="userAvatar"
+                     alt="Avatar"
+                     class="w-full h-full object-cover rounded-full bg-zinc-900">
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-1 pt-16 md:pt-24 pb-16 md:pb-24 px-3 sm:px-6 md:px-12 max-w-7xl mx-auto w-full transition-all duration-300">
+
+        <!-- ================= 1. HOME ALBUM GRID VIEW ================= -->
+        <div id="albumGridView" class="space-y-8 md:space-y-10 page-enter">
+            <div class="border-b theme-border pb-3 sm:pb-4">
+                <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight theme-text-primary">我的音乐库</h1>
+                <p class="theme-text-secondary text-xs sm:text-sm mt-1 font-medium">一些喜欢的歌曲和专辑</p>
+            </div>
+
+            <!-- Section 1: 我最近在听 -->
+            <section id="sectionRecent">
+                <div class="flex items-center justify-between mb-3 sm:mb-4">
+                    <h2 onclick="openCategoryView('recent')" class="text-lg sm:text-xl md:text-2xl font-bold tracking-tight flex items-center cursor-pointer group theme-text-primary">
+                        我最近在听
+                        <i class="fa-solid fa-chevron-right text-xs theme-text-secondary group-hover:text-rose-500 group-hover:translate-x-1 transition ml-2"></i>
+                    </h2>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-5 md:gap-6" id="recentlyPlayedGrid">
+                    <!-- Dynamic albums -->
+                </div>
+            </section>
+
+            <!-- Section 2: 我的收藏 -->
+            <section id="sectionFavorites">
+                <div class="flex items-center justify-between mb-3 sm:mb-4">
+                    <h2 onclick="openCategoryView('favorites')" class="text-lg sm:text-xl md:text-2xl font-bold tracking-tight flex items-center cursor-pointer group theme-text-primary">
+                        我的收藏
+                        <i class="fa-solid fa-chevron-right text-xs theme-text-secondary group-hover:text-rose-500 group-hover:translate-x-1 transition ml-2"></i>
+                    </h2>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-5 md:gap-6" id="favoritesGrid">
+                    <!-- Dynamic albums -->
+                </div>
+            </section>
+        </div>
+
+        <!-- ================= 2. DEDICATED CATEGORY FULL GRID VIEW ================= -->
+        <div id="categoryDetailView" class="hidden page-enter space-y-6">
+            <div class="flex items-center justify-between border-b theme-border pb-4">
+                <div>
+                    <button onclick="showGridView()" class="mb-2 flex items-center space-x-1.5 text-xs font-semibold text-rose-500 hover:text-rose-400 transition">
+                        <i class="fa-solid fa-chevron-left text-[10px]"></i>
+                        <span>我的音乐库</span>
+                    </button>
+                    <h1 id="categoryPageTitle" class="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight theme-text-primary"></h1>
+                    <p id="categoryPageSubtitle" class="theme-text-secondary text-xs mt-1">精选与推荐库</p>
+                </div>
+                <div class="text-xs theme-text-secondary bg-zinc-800/40 px-3 py-1.5 rounded-full border theme-border">
+                    <span id="categoryCount">0</span> 张专辑
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-5 md:gap-6" id="categoryFullGrid">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+
+        <!-- ================= 3. ALBUM DETAIL VIEW ================= -->
+        <div id="albumDetailView" class="hidden page-enter min-h-[70vh]">
+            <div id="detailBackground" class="rounded-2xl md:rounded-3xl p-4 sm:p-6 md:p-10 transition-colors duration-700 bg-gradient-to-b from-amber-950/40 via-zinc-900/60 to-zinc-950/90 border border-white/5">
+
+                <button onclick="showGridView()" class="mb-4 md:mb-6 flex items-center space-x-2 text-xs font-semibold theme-text-secondary hover:text-rose-500 bg-black/30 hover:bg-black/50 px-3.5 py-1.5 rounded-full border border-white/10 transition backdrop-blur-md">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>返回音乐库</span>
+                </button>
+
+                <div class="flex flex-col md:flex-row items-center md:items-end space-y-4 md:space-y-0 md:space-x-8 pb-6 md:pb-8">
+                    <div class="relative group flex-shrink-0">
+                        <img id="detailCover" src="" alt="Album Cover" class="w-40 h-40 sm:w-56 sm:h-56 md:w-64 md:h-64 rounded-2xl shadow-2xl object-cover border border-white/10">
+                    </div>
+
+                    <div class="flex-1 text-center md:text-left space-y-2 md:space-y-3 w-full">
+                        <div class="flex flex-wrap items-center justify-center md:justify-start gap-2">
+                            <h1 id="detailTitle" class="text-xl sm:text-2xl md:text-4xl font-extrabold tracking-tight text-white"></h1>
+                            <span id="detailExplicit" class="explicit-badge text-xs hidden">E</span>
+                        </div>
+                        <p id="detailArtist" class="text-base sm:text-lg md:text-2xl font-semibold text-rose-500"></p>
+                        <p id="detailMeta" class="text-xs md:text-sm font-medium text-zinc-300"></p>
+                        <p id="detailDescription" class="text-xs md:text-sm text-zinc-300 max-w-2xl line-clamp-2 leading-relaxed pt-1 hidden sm:block"></p>
+
+                        <!-- Cleaned control buttons without share (...) button -->
+                        <div class="flex items-center justify-center md:justify-start space-x-3 md:space-x-4 pt-2 md:pt-3">
+                            <button onclick="playAlbumFirstTrack()" class="flex-1 sm:flex-initial flex items-center justify-center space-x-2 bg-white text-black hover:bg-gray-200 px-6 md:px-8 py-2.5 rounded-xl font-bold text-xs md:text-sm transition shadow-lg active:scale-95">
+                                <i class="fa-solid fa-play text-xs"></i>
+                                <span>播放</span>
+                            </button>
+                            <button onclick="shuffleAlbumTracks()" class="flex-1 sm:flex-initial flex items-center justify-center space-x-2 bg-white/10 hover:bg-white/20 text-white px-5 md:px-6 py-2.5 rounded-xl font-semibold text-xs md:text-sm transition backdrop-blur-md border border-white/10 active:scale-95">
+                                <i class="fa-solid fa-shuffle text-xs"></i>
+                                <span>随机播放</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-2 md:mt-4 border-t border-white/10 pt-4 md:pt-6">
+                    <div class="space-y-1" id="tracklistContainer">
+                        <!-- Dynamic track rows -->
+                    </div>
+                </div>
+
+                <div class="mt-6 md:mt-8 pt-4 md:pt-6 border-t border-white/5 text-[11px] md:text-xs text-zinc-400 space-y-1 text-center md:text-left">
+                    <p id="detailReleaseDate"></p>
+                    <p id="detailCopyright"></p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ================= 4. PLATFORM SELECTION MODAL ================= -->
+    <div id="platformModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 sm:p-4 modal-backdrop opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-zinc-900/95 border border-zinc-800 w-full max-w-md rounded-3xl p-5 sm:p-6 shadow-2xl transform scale-95 transition-transform duration-300 relative text-white backdrop-blur-xl" id="modalCard">
+            <button onclick="closePlatformModal()" class="absolute top-4 right-4 text-zinc-400 hover:text-white p-1.5 rounded-full hover:bg-zinc-800 transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div class="flex items-center space-x-3 sm:space-x-4 mb-5 pr-6">
+                <img id="modalCover" src="" class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover shadow-md flex-shrink-0">
+                <div class="min-w-0 flex-1">
+                    <span class="text-[10px] sm:text-xs uppercase tracking-wider text-rose-500 font-semibold block">选择播放平台</span>
+                    <h3 id="modalSongTitle" class="font-bold text-base sm:text-lg leading-snug truncate"></h3>
+                    <p id="modalArtist" class="text-xs text-zinc-400 truncate"></p>
+                </div>
+            </div>
+
+            <p class="text-xs text-zinc-400 mb-3 sm:mb-4">即将从 <span class="text-white font-medium">guohaobo.com</span> 跳转至外部流媒体平台听歌：</p>
+
+            <div class="space-y-2 sm:space-y-2.5">
+                <a id="btnAppleMusic" href="#" target="_blank" rel="noopener noreferrer" onclick="closePlatformModal()" class="flex items-center justify-between p-3 sm:p-3.5 rounded-2xl bg-zinc-800/60 hover:bg-rose-600/20 hover:border-rose-500/50 border border-zinc-700/40 transition group">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-rose-500 to-pink-500 flex items-center justify-center text-white flex-shrink-0">
+                            <i class="fa-brands fa-apple text-base"></i>
+                        </div>
+                        <div>
+                            <div class="font-semibold text-xs sm:text-sm">Apple Music</div>
+                            <div class="text-[10px] text-zinc-400">无损高解析度音质</div>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-xs text-zinc-500 group-hover:text-rose-400 transition"></i>
+                </a>
+
+                <a id="btnSpotify" href="#" target="_blank" rel="noopener noreferrer" onclick="closePlatformModal()" class="flex items-center justify-between p-3 sm:p-3.5 rounded-2xl bg-zinc-800/60 hover:bg-emerald-600/20 hover:border-emerald-500/50 border border-zinc-700/40 transition group">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-white flex-shrink-0">
+                            <i class="fa-brands fa-spotify text-base"></i>
+                        </div>
+                        <div>
+                            <div class="font-semibold text-xs sm:text-sm">Spotify</div>
+                            <div class="text-[10px] text-zinc-400">全球流行音乐流媒体</div>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-xs text-zinc-500 group-hover:text-emerald-400 transition"></i>
+                </a>
+
+                <a id="btnNetease" href="#" target="_blank" rel="noopener noreferrer" onclick="closePlatformModal()" class="flex items-center justify-between p-3 sm:p-3.5 rounded-2xl bg-zinc-800/60 hover:bg-red-600/20 hover:border-red-500/50 border border-zinc-700/40 transition group">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center text-white flex-shrink-0">
+                            <i class="fa-solid fa-music text-sm"></i>
+                        </div>
+                        <div>
+                            <div class="font-semibold text-xs sm:text-sm">网易云音乐</div>
+                            <div class="text-[10px] text-zinc-400">发现好音乐与热评</div>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-xs text-zinc-500 group-hover:text-red-400 transition"></i>
+                </a>
+
+                <a id="btnQQMusic" href="#" target="_blank" rel="noopener noreferrer" onclick="closePlatformModal()" class="flex items-center justify-between p-3 sm:p-3.5 rounded-2xl bg-zinc-800/60 hover:bg-amber-600/20 hover:border-amber-500/50 border border-zinc-700/40 transition group">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white flex-shrink-0">
+                            <i class="fa-solid fa-compact-disc text-sm"></i>
+                        </div>
+                        <div>
+                            <div class="font-semibold text-xs sm:text-sm">QQ音乐</div>
+                            <div class="text-[10px] text-zinc-400">绿钻尊享品质音乐</div>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-xs text-zinc-500 group-hover:text-amber-400 transition"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js" defer></script>
+</body>
+</html>

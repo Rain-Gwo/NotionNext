@@ -3,6 +3,7 @@ import { useGlobal } from '@/lib/global'
 import CONFIG from '../config'
 import { MenuItemDrop } from './MenuItemDrop'
 import { withPhotographyMenu } from './photographyMenu'
+import { withMusicMenu } from './musicMenu'
 
 export const MenuListTop = props => {
   const { customNav, customMenu } = props
@@ -50,6 +51,7 @@ export const MenuListTop = props => {
   }
 
   links = withPhotographyMenu(links)
+  links = withMusicMenu(links)
 
   if (!links || links.length === 0) {
     return null

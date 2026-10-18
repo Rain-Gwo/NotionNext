@@ -1,0 +1,144 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", "Inter", sans-serif;
+    background-color: #000000;
+    color: #f5f5f7;
+    overflow-x: hidden;
+    user-select: none;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Light mode theme overrides */
+body.light-theme {
+    background-color: #f5f5f7;
+    color: #1d1d1f;
+}
+
+/* Immersive wrapper (pages/music.js inlines the markup into #music-root).
+   Explicit background so the global blog CSS never bleeds through. */
+.music-page {
+    min-height: 100vh;
+    background-color: #000000;
+    color: #f5f5f7;
+}
+body.light-theme .music-page {
+    background-color: #f5f5f7;
+    color: #1d1d1f;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: #333336;
+    border-radius: 4px;
+}
+body.light-theme ::-webkit-scrollbar-thumb {
+    background: #c1c1c6;
+}
+
+/* Glassmorphism Navigation Header */
+.glass-nav {
+    background: rgba(20, 20, 22, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    transition: background 0.3s ease, border-color 0.3s ease;
+}
+body.light-theme .glass-nav {
+    background: rgba(255, 255, 255, 0.88);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* Album card hover animations & light-mode rounded soft border */
+.album-card-img-wrapper {
+    border-radius: 0.85rem;
+    overflow: hidden;
+    transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background-color: #111;
+}
+.album-card:hover .album-card-img-wrapper {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.6);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+body.light-theme .album-card-img-wrapper {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    background-color: #e5e5ea;
+}
+body.light-theme .album-card:hover .album-card-img-wrapper {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+    border-color: rgba(0, 0, 0, 0.15);
+}
+
+/* Explicit Badge Style */
+.explicit-badge {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #a1a1a6;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 3px;
+    border-radius: 2px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 14px;
+    width: 14px;
+    line-height: 1;
+}
+body.light-theme .explicit-badge {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: #6e6e73;
+}
+
+/* Dynamic Theme Text helpers */
+.theme-text-primary { color: #ffffff; }
+body.light-theme .theme-text-primary { color: #1d1d1f; }
+
+.theme-text-secondary { color: #a1a1a6; }
+body.light-theme .theme-text-secondary { color: #6e6e73; }
+
+.theme-border { border-color: rgba(255, 255, 255, 0.1); }
+body.light-theme .theme-border { border-color: rgba(0, 0, 0, 0.08); }
+
+.theme-input-bg { background-color: rgba(255, 255, 255, 0.1); }
+body.light-theme .theme-input-bg { background-color: rgba(0, 0, 0, 0.05); }
+
+/* Modal backdrop blur */
+.modal-backdrop {
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+/* Page Transitions */
+.page-enter {
+    animation: appleSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes appleSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.99);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+.track-row {
+    transition: background-color 0.15s ease;
+}
+.track-row:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+body.light-theme .track-row:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
