@@ -366,8 +366,13 @@ function renderAlbumCard(album) {
 }
 
 // Inject pre-rendered cards into an empty grid container in the page markup.
+// Kept in sync with EMPTY_NOTE / gridHtml() in public/music/script.js.
+const EMPTY_NOTE =
+  '<p style="grid-column:1/-1;padding:28px 0;font-size:14px;line-height:1.7;color:rgba(255,255,255,.42)">这个分区还是空的 —— 在 Notion「音乐」库里加一行，分类选「最近在听」或「我的收藏」，一小时内自动同步。</p>'
+
 function fillGrid(body, gridId, albums) {
-  const html = (albums || []).slice(0, 12).map(renderAlbumCard).join('')
+  const list = (albums || []).slice(0, 12)
+  const html = list.length ? list.map(renderAlbumCard).join('') : EMPTY_NOTE
   const re = new RegExp(
     `(<div[^>]*id="${gridId}"[^>]*>)[\\s\\S]*?(</div>)`,
     'i'
@@ -376,7 +381,15 @@ function fillGrid(body, gridId, albums) {
 }
 
 async function buildAlbums() {
-  let raw = await getNotionAlbums()
+  let raw = null
+  try {
+    raw = await getNotionAlbums()
+  } catch (e) {
+    // 接线常见故障：库没分享给集成（404）、token 失效（401）、env 写错。
+    // 这种情况下绝不能把整页渲染成空 —— 退回本地 albums.json，
+    // 页面照旧有内容，同时日志里能看到真正的原因。
+    console.error('[music] Notion query failed, using albums.json:', e.message)
+  }
 
   if (!raw || raw.length === 0) {
     // Fallback: local editable list, handy before Notion is wired up.
@@ -514,7 +527,7 @@ export default function Music({ title, desc, body, css, twCss, albumsJson }) {
         dangerouslySetInnerHTML={{ __html: body }}
       />
 
-      <Script src='/music/script.js?v=3' strategy='afterInteractive' />
+      <Script src='/music/script.js?v=4' strategy='afterInteractive' />
     </>
   )
 }

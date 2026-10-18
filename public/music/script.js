@@ -97,8 +97,17 @@ function renderGrids() {
     const recentAlbums = albumsData.filter(a => a.category === 'recent');
     const favAlbums = albumsData.filter(a => a.category === 'favorites');
 
-    recentGrid.innerHTML = recentAlbums.slice(0, 12).map(album => createAlbumCardHtml(album)).join('');
-    favGrid.innerHTML = favAlbums.slice(0, 12).map(album => createAlbumCardHtml(album)).join('');
+    recentGrid.innerHTML = gridHtml(recentAlbums);
+    favGrid.innerHTML = gridHtml(favAlbums);
+}
+
+// Inline styles on purpose: no Tailwind class needed, so this note works even
+// if tw.css was built before it existed.
+const EMPTY_NOTE = '<p style="grid-column:1/-1;padding:28px 0;font-size:14px;line-height:1.7;color:rgba(255,255,255,.42)">这个分区还是空的 —— 在 Notion「音乐」库里加一行，分类选「最近在听」或「我的收藏」，一小时内自动同步。</p>';
+
+function gridHtml(list) {
+    if (!list || list.length === 0) return EMPTY_NOTE;
+    return list.slice(0, 12).map(album => createAlbumCardHtml(album)).join('');
 }
 
 function createAlbumCardHtml(album) {
