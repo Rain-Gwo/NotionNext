@@ -90,6 +90,10 @@ function renderGrids() {
 
     if (!recentGrid || !favGrid) return;
 
+    // If the server already pre-rendered cards into the grids (build-time
+    // pre-fill), keep them to avoid a re-render flicker on first paint.
+    if (recentGrid.children.length > 0 && favGrid.children.length > 0) return;
+
     const recentAlbums = albumsData.filter(a => a.category === 'recent');
     const favAlbums = albumsData.filter(a => a.category === 'favorites');
 
@@ -101,7 +105,7 @@ function createAlbumCardHtml(album) {
     return `
         <div onclick="openAlbumDetail('${album.id}')" class="album-card cursor-pointer group flex flex-col space-y-2">
             <div class="album-card-img-wrapper aspect-square relative shadow-lg">
-                <img src="${album.cover}" alt="${album.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy">
+                <img src="${album.cover}" alt="${album.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" decoding="async" sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw">
             </div>
             <div class="min-w-0">
                 <div class="flex items-center space-x-1">
@@ -201,11 +205,14 @@ function openPlatformModal(track, album) {
     document.getElementById('modalArtist').textContent = targetTrack.artist;
 
     const searchQuery = encodeURIComponent(`${targetTrack.title} ${targetTrack.artist}`);
+    const links = targetTrack.links || {};
 
+    // Apple Music / Spotify: keep as search links (no per-song API available).
+    // Netease / QQ: prefer the direct song page when we have it, else search.
     document.getElementById('btnAppleMusic').href = `https://music.apple.com/us/search?term=${searchQuery}`;
     document.getElementById('btnSpotify').href = `https://open.spotify.com/search/${searchQuery}`;
-    document.getElementById('btnNetease').href = `https://music.163.com/#/search/m/?s=${searchQuery}&type=1`;
-    document.getElementById('btnQQMusic').href = `https://y.qq.com/n/ryqq/search?w=${searchQuery}&t=song`;
+    document.getElementById('btnNetease').href = links.netease || `https://music.163.com/#/search/m/?s=${searchQuery}&type=1`;
+    document.getElementById('btnQQMusic').href = links.qq || `https://y.qq.com/n/ryqq/search?w=${searchQuery}&t=song`;
 
     const modal = document.getElementById('platformModal');
     const card = document.getElementById('modalCard');

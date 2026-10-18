@@ -42,6 +42,17 @@ function pick(html, re) {
   return m ? m[1] : ''
 }
 
+// Minimal HTML escaper so user-supplied album titles can't break the markup
+// (used both for the server-pre-rendered cards and the client template).
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 function firstProp(props, candidates, kind) {
   for (const key of candidates) {
     const p = props[key]
@@ -205,7 +216,11 @@ async function qqAlbumDetail(albummid) {
     title: s.songname || '',
     artist: (s.singer || []).map(x => x.name).join('/') || '',
     duration: fmtDuration((s.interval || 0) * 1000),
-    explicit: false
+    explicit: false,
+    // Direct song link to QQ Music's web player (domestic, fast).
+    links: s.songmid
+      ? { qq: `https://y.qq.com/n/ryqq/songDetail/${s.songmid}` }
+      : {}
   }))
   if (!tracks.length) return null
   return {
@@ -220,6 +235,23 @@ async function qqEnrich(title, artist) {
   const search = await qqSearchAlbum(title, artist)
   if (!search || !search.albummid) return null
   return qqAlbumDetail(search.albummid)
+}
+
+// Netease Cloud Music: unencrypted search endpoint returns the song id, which
+// we turn into a direct https://music.163.com/song/{id} link. Cached per
+// (title|artist) so a build reuses results instead of re-querying every track.
+const _neteaseCache = new Map()
+async function neteaseSongId(title, artist) {
+  const key = `${title} ${artist}`
+  if (_neteaseCache.has(key)) return _neteaseCache.get(key)
+  const q = encodeURIComponent(`${title} ${artist}`)
+  const d = await fetchJSON(
+    `https://music.163.com/api/search/get?type=1&s=${q}&limit=1`,
+    { 'User-Agent': QQ_UA, Referer: 'https://music.163.com/' }
+  )
+  const id = d?.result?.songs?.[0]?.id || null
+  _neteaseCache.set(key, id)
+  return id
 }
 
 // Prefer self-hosted, WebP-compressed covers generated at build time
@@ -261,18 +293,36 @@ async function enrich(a, index) {
   const local = localCover(a.title, a.artist)
   if (local) info.cover = local
 
-  const tracks =
-    info.tracks && info.tracks.length
-      ? info.tracks
-      : [
-          {
-            id: `t1`,
-            title: `${a.title} - Prelude`,
-            artist: a.artist,
-            duration: '0:00',
-            explicit: false
-          }
-        ]
+  const hasRealTracks = info.tracks && info.tracks.length > 0
+  const tracks = hasRealTracks
+    ? info.tracks.map(t => ({
+        id: t.id,
+        title: t.title,
+        artist: t.artist,
+        duration: t.duration,
+        explicit: !!t.explicit,
+        links: t.links || {}
+      }))
+    : [
+        {
+          id: `t1`,
+          title: `${a.title} - Prelude`,
+          artist: a.artist,
+          duration: '0:00',
+          explicit: false,
+          links: {}
+        }
+      ]
+
+  // Attach Netease direct links only for real tracks (skip placeholder).
+  if (hasRealTracks) {
+    for (const t of tracks) {
+      if (!t.links.netease) {
+        const nid = await neteaseSongId(t.title, t.artist)
+        if (nid) t.links.netease = `https://music.163.com/song/${nid}`
+      }
+    }
+  }
 
   return {
     id: `album-${index}-${Date.now()}`,
@@ -287,6 +337,41 @@ async function enrich(a, index) {
     category: a.category,
     tracks
   }
+}
+
+// Server-side album card matching the client template (script.js). Pre-rendered
+// into the grid markup at build time so the first paint already has content and
+// there is no empty-grid flash before script.js runs.
+function renderAlbumCard(album) {
+  const cover = esc(album.cover || '')
+  const title = esc(album.title || '')
+  const artist = esc(album.artist || '')
+  const exp = album.explicit
+    ? '<span class="explicit-badge flex-shrink-0">E</span>'
+    : ''
+  return `
+        <div onclick="openAlbumDetail('${esc(album.id)}')" class="album-card cursor-pointer group flex flex-col space-y-2">
+            <div class="album-card-img-wrapper aspect-square relative shadow-lg">
+                <img src="${cover}" alt="${title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" decoding="async" sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw">
+            </div>
+            <div class="min-w-0">
+                <div class="flex items-center space-x-1">
+                    <h3 class="font-bold text-xs sm:text-sm theme-text-primary truncate group-hover:text-rose-500 transition">${title}</h3>
+                    ${exp}
+                </div>
+                <p class="text-[11px] sm:text-xs theme-text-secondary truncate mt-0.5">${artist}</p>
+            </div>
+        </div>`
+}
+
+// Inject pre-rendered cards into an empty grid container in the page markup.
+function fillGrid(body, gridId, albums) {
+  const html = (albums || []).slice(0, 12).map(renderAlbumCard).join('')
+  const re = new RegExp(
+    `(<div[^>]*id="${gridId}"[^>]*>)[\\s\\S]*?(</div>)`,
+    'i'
+  )
+  return body.replace(re, `$1\n${html}\n`)
 }
 
 async function buildAlbums() {
@@ -337,11 +422,27 @@ export async function getStaticProps() {
     console.error('[music] build failed', e)
   }
 
+  // Pre-render album cards into the grids so the first paint already has
+  // content — eliminates the empty-grid flash before script.js runs.
+  let filledBody = body
+  if (albums && albums.length) {
+    const recent = albums.filter(a => a.category === 'recent')
+    const fav = albums.filter(a => a.category === 'favorites')
+    filledBody = fillGrid(filledBody, 'recentlyPlayedGrid', recent)
+    filledBody = fillGrid(filledBody, 'favoritesGrid', fav)
+  }
+  // Strip the standalone <script src="script.js"> — Next loads it via
+  // <Script> below. Without this it would execute twice.
+  filledBody = filledBody.replace(
+    /<script src="script\.js"[^>]*><\/script>/i,
+    ''
+  )
+
   // Escape `<` so the JSON can never break out of the <script> tag.
   const albumsJson = JSON.stringify(albums || []).replace(/</g, '\\u003c')
 
   return {
-    props: { title, desc, body, css, albumsJson },
+    props: { title, desc, body: filledBody, css, albumsJson },
     revalidate: 3600
   }
 }
@@ -359,12 +460,20 @@ export default function Music({ title, desc, body, css, albumsJson }) {
         <meta property='og:description' content={desc} />
         <meta property='og:url' content='https://www.guohaobo.com/music/' />
         <meta name='twitter:card' content='summary_large_image' />
+        {/* Critical paint: keep the page dark even before Tailwind CDN compiles,
+            so client navigation to /music never flashes white. */}
+        <style
+          dangerouslySetInnerHTML={{
+            __html: 'html,body{background:#000000;color:#f5f5f7}'
+          }}
+        />
         <link rel='preconnect' href='https://fonts.googleapis.com' />
         <link
           rel='preconnect'
           href='https://fonts.gstatic.com'
           crossOrigin='anonymous'
         />
+        <link rel='preconnect' href='https://cdn.tailwindcss.com' />
         <link href={FONT_HREF} rel='stylesheet' />
         <script src='https://cdn.tailwindcss.com' />
         <link
