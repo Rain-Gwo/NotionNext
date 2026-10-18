@@ -72,16 +72,28 @@ document.querySelectorAll('a[href^="#"]').forEach((a) => {
   });
 });
 
-// ---------- Hero 视频淡入（canplay 后再显示，避免空白跳变） ----------
+// ---------- Hero 视频：动态注入的 <video autoplay> 不会自动播放，必须显式 play() ----------
 const heroVideo = document.querySelector('.hero-video');
 if (heroVideo) {
-  const revealVideo = () => heroVideo.classList.add('is-ready');
-  if (heroVideo.readyState >= 3) {
-    revealVideo();
-  } else {
-    heroVideo.addEventListener('canplay', revealVideo, { once: true });
-    heroVideo.addEventListener('loadeddata', revealVideo, { once: true });
-    // 兜底：若事件未触发，2.5s 后强制显示
-    setTimeout(revealVideo, 2500);
-  }
+  // 即时显示（poster 提供静态首帧），随后淡入；视频开始播放后自然覆盖 poster
+  heroVideo.classList.add('is-ready');
+  const startPlay = () => {
+    const pr = heroVideo.play();
+    if (pr && typeof pr.then === 'function') {
+      pr.catch(() => {
+        // 极少数浏览器仍拦截自动播放：首个用户交互时再尝试
+        const onUser = () => {
+          heroVideo.play().catch(() => {});
+          window.removeEventListener('pointerdown', onUser);
+          window.removeEventListener('scroll', onUser);
+        };
+        window.addEventListener('pointerdown', onUser, { once: true });
+        window.addEventListener('scroll', onUser, { once: true });
+      });
+    }
+  };
+  heroVideo.addEventListener('canplay', startPlay, { once: true });
+  heroVideo.addEventListener('loadeddata', startPlay, { once: true });
+  if (heroVideo.readyState >= 2) startPlay();
+  setTimeout(startPlay, 1200); // 兜底
 }
