@@ -13,6 +13,7 @@
 // revalidation window (or trigger an on-demand revalidation).
 import fs from 'fs'
 import path from 'path'
+import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import Script from 'next/script'
 
@@ -452,6 +453,17 @@ export async function getStaticProps() {
 }
 
 export default function Music({ title, desc, body, css, twCss, albumsJson }) {
+  // Fade in from black on mount. `ready` starts false so the server-rendered
+  // HTML carries opacity:0 — the first painted frame is guaranteed black (the
+  // <html> background is pre-painted black on navigation), then we flip to
+  // opacity:1 on the next frame so the transition runs 0→1. This avoids the
+  // CSS-animation "first frame painted before the animation starts" blip.
+  const [ready, setReady] = useState(false)
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setReady(true))
+    return () => cancelAnimationFrame(id)
+  }, [])
+
   return (
     <>
       <Head>
@@ -495,6 +507,10 @@ export default function Music({ title, desc, body, css, twCss, albumsJson }) {
       <div
         id='music-root'
         className='music-page'
+        style={{
+          opacity: ready ? 1 : 0,
+          transition: 'opacity 0.12s ease-out'
+        }}
         dangerouslySetInnerHTML={{ __html: body }}
       />
 
