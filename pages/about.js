@@ -18,7 +18,7 @@
 // styled from the first paint (no FOUC on client-side navigation).
 import fs from 'fs'
 import path from 'path'
-import { useEffect, useLayoutEffect } from 'react'
+import { useEffect, useLayoutEffect, useState } from 'react'
 import Head from 'next/head'
 import Script from 'next/script'
 
@@ -67,6 +67,16 @@ export async function getStaticProps() {
 }
 
 export default function About({ title, desc, body, css }) {
+  // Fade in from dark on mount, same pattern as /music: SSR HTML carries
+  // opacity:0 (the <html> background is pre-painted black by pages/_app.js on
+  // navigation), then we flip to opacity:1 on the next frame so the transition
+  // runs 0→1. This smooths the light→dark route switch instead of a hard cut.
+  const [ready, setReady] = useState(false)
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setReady(true))
+    return () => cancelAnimationFrame(id)
+  }, [])
+
   // Add the `js` class before first paint so [data-reveal] elements start
   // hidden and fade in via IntersectionObserver (no flash of un-revealed
   // content). Runs on both hard load and client navigation.
@@ -129,6 +139,15 @@ export default function About({ title, desc, body, css }) {
         <link rel='preconnect' href='https://fonts.googleapis.com' />
         <link rel='preconnect' href='https://fonts.gstatic.com' crossOrigin='anonymous' />
         <link href={FONT_HREF} rel='stylesheet' />
+        {/*
+          深色底先落盘：冷启动直接打开 /about 时，浏览器默认白底会在
+          #about-root 挂载前露一帧。和 /music 用同一招（见 pages/music.js）。
+        */}
+        <style
+          dangerouslySetInnerHTML={{
+            __html: 'html,body{background:#1a1a1a;color:#f0ece4}',
+          }}
+        />
         {/* 内联 about 样式：消除客户端跳转时的 FOUC（无样式闪现） */}
         <style dangerouslySetInnerHTML={{ __html: css }} />
       </Head>
@@ -139,6 +158,8 @@ export default function About({ title, desc, body, css }) {
           minHeight: '100vh',
           background: '#1a1a1a',
           color: '#f0ece4',
+          opacity: ready ? 1 : 0,
+          transition: 'opacity 0.12s ease-out',
         }}
         dangerouslySetInnerHTML={{ __html: body }}
       />

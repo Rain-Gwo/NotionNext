@@ -243,7 +243,7 @@ async function qqEnrich(title, artist) {
 // (title|artist) so a build reuses results instead of re-querying every track.
 const _neteaseCache = new Map()
 async function neteaseSongId(title, artist) {
-  const key = `${title} ${artist}`
+  const key = `${title}\u0000${artist}`
   if (_neteaseCache.has(key)) return _neteaseCache.get(key)
   const q = encodeURIComponent(`${title} ${artist}`)
   const d = await fetchJSON(
