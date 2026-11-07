@@ -29,6 +29,13 @@ const locales = (function () {
       }
     }
   }
+  // 本站需要 /en 语言入口：即使 NOTION_PAGE_ID 未配置 en: 英文库，也要注册 en
+  // 路由。Next.js i18n 会把 /en 映射到首页并把 router.locale 设为 'en'，界面文案
+  // 自动走 lib/lang/en-US.js；站点数据回落到默认（中文）数据库。
+  // 若以后配置了 en:xxxx 英文库，这里已存在 'en'，不会重复添加。
+  if (!langs.includes('en')) {
+    langs.push('en')
+  }
   return langs
 })()
 
@@ -221,7 +228,10 @@ const nextConfig = {
     : {
       defaultLocale: BLOG.LANG,
       // 支持的所有多语言,按需填写即可
-      locales: locales
+      locales: locales,
+      // 关闭基于 Accept-Language 的自动跳转：否则英文浏览器访问中文首页会被
+      // 自动 307 到 /en，中文访客会莫名其妙进英文站。
+      localeDetection: false
     },
   images: {
     // 图片压缩和格式优化

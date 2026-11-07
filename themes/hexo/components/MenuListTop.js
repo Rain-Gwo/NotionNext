@@ -4,10 +4,13 @@ import CONFIG from '../config'
 import { MenuItemDrop } from './MenuItemDrop'
 import { withPhotographyMenu } from './photographyMenu'
 import { withMusicMenu } from './musicMenu'
+import { withLangMenu } from './langMenu'
+import { useRouter } from 'next/router'
 
 export const MenuListTop = props => {
   const { customNav, customMenu } = props
   const { locale } = useGlobal()
+  const router = useRouter()
 
   let links = [
     {
@@ -52,6 +55,7 @@ export const MenuListTop = props => {
 
   links = withPhotographyMenu(links)
   links = withMusicMenu(links)
+  links = withLangMenu(links, router.locale)
 
   if (!links || links.length === 0) {
     return null

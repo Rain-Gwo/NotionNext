@@ -3,6 +3,8 @@ import { useGlobal } from '@/lib/global'
 import CONFIG from '../config'
 import { MenuItemCollapse } from './MenuItemCollapse'
 import { withPhotographyMenu } from './photographyMenu'
+import { withLangMenu } from './langMenu'
+import { useRouter } from 'next/router'
 /**
  * 侧拉抽屉菜单
  * @param {*} props
@@ -11,6 +13,7 @@ import { withPhotographyMenu } from './photographyMenu'
 export const MenuListSide = props => {
   const { customNav, customMenu } = props
   const { locale } = useGlobal()
+  const router = useRouter()
 
   let links = [
     {
@@ -55,6 +58,7 @@ export const MenuListSide = props => {
   }
 
   links = withPhotographyMenu(links)
+  links = withLangMenu(links, router.locale)
 
   if (!links || links.length === 0) {
     return null
